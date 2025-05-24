@@ -1,0 +1,2460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Warfare</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(139, 69, 19, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(34, 139, 34, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(25, 25, 112, 0.3) 0%, transparent 50%),
+                linear-gradient(135deg, #2c1810 0%, #1a4c2e 50%, #1a202c 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        .game-container {
+            background: 
+                linear-gradient(45deg, rgba(139, 69, 19, 0.1) 0%, rgba(34, 139, 34, 0.1) 100%),
+                rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 
+                0 0 50px rgba(139, 69, 19, 0.3),
+                inset 0 0 20px rgba(255, 215, 0, 0.1);
+            border: 3px solid;
+            border-image: linear-gradient(45deg, #8B4513, #228B22, #191970, #DC143C) 1;
+            width: 95vw;
+            height: 95vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Floating Corner Buttons */
+        .corner-btn {
+            position: absolute;
+            top: 10px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .corner-btn.new-battle {
+            right: 10px;
+            background: linear-gradient(45deg, #48bb78, #38a169);
+        }
+
+        .corner-btn.return-menu {
+            left: 10px;
+            background: linear-gradient(45deg, #6c757d, #495057);
+        }
+
+        .corner-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .intro-screen {
+            text-align: center;
+            padding: 20px 15px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-y: auto;
+        }
+
+        .intro-screen.hidden {
+            display: none;
+        }
+
+        .main-game {
+            display: none;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .main-game.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .intro-title {
+            font-size: 3.2em;
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #dc143c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            letter-spacing: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .intro-subtitle {
+            font-size: 1.1em;
+            color: #ffd700;
+            margin-bottom: 15px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-top: 2px solid rgba(255, 215, 0, 0.3);
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            padding: 8px 0;
+        }
+
+        .intro-description {
+            font-size: 0.95em;
+            color: #ffffff;
+            margin-bottom: 20px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.4;
+            opacity: 0.85;
+        }
+
+        .mode-selection {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .mode-card {
+            background: 
+                linear-gradient(135deg, rgba(139, 69, 19, 0.2), rgba(34, 139, 34, 0.2)),
+                rgba(0, 0, 0, 0.6);
+            border: 2px solid;
+            border-image: linear-gradient(45deg, #8B4513, #228B22) 1;
+            border-radius: 12px;
+            padding: 20px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+            max-width: 220px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 15px rgba(139, 69, 19, 0.2);
+        }
+
+        .mode-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 10px 25px rgba(255, 215, 0, 0.3),
+                inset 0 0 20px rgba(255, 215, 0, 0.1);
+            border-image: linear-gradient(45deg, #ffd700, #ff6b35) 1;
+        }
+
+        .mode-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 60px;
+        }
+
+        .icon-ai {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 1.8em;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .icon-multiplayer {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            font-size: 1.5em;
+        }
+
+        .icon-network {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 1.6em;
+            text-shadow: 0 0 10px rgba(72, 187, 120, 0.5);
+        }
+
+        .mode-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .mode-description {
+            font-size: 0.85em;
+            color: #bdc3c7;
+            line-height: 1.3;
+        }
+
+        .difficulty-selection {
+            margin-top: 12px;
+            display: none;
+        }
+
+        .difficulty-selection.show {
+            display: block;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .difficulty-btn {
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            padding: 6px 12px;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .difficulty-btn:hover {
+            background: linear-gradient(45deg, #ffd700, #ff6b35);
+            color: #1a202c;
+            transform: translateY(-1px);
+        }
+
+        .network-section {
+            background: rgba(72, 187, 120, 0.1);
+            border: 1px solid rgba(72, 187, 120, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .network-section.show {
+            display: block;
+        }
+
+        .network-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(72, 187, 120, 0.5);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: white;
+            margin: 5px;
+            width: 150px;
+        }
+
+        .network-btn {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .network-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+
+        .connection-status {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .connected {
+            background: rgba(72, 187, 120, 0.2);
+            color: #48bb78;
+        }
+
+        .connecting {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        .disconnected {
+            background: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+        }
+
+        .game-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .feature-item {
+            background: 
+                linear-gradient(135deg, rgba(25, 25, 112, 0.2), rgba(139, 0, 0, 0.2)),
+                rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            padding: 12px 8px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 1.5em;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        .feature-title {
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 4px;
+            font-size: 0.85em;
+            text-transform: uppercase;
+        }
+
+        .feature-desc {
+            font-size: 0.75em;
+            color: #bdc3c7;
+            line-height: 1.2;
+        }
+
+        /* Main Game Layout */
+        h1 {
+            text-align: center;
+            margin-bottom: 3px;
+            font-size: 1.6em;
+            background: linear-gradient(45deg, #ffd700, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-bottom: 8px;
+            opacity: 0.9;
+            font-size: 0.85em;
+            color: #ffd700;
+        }
+
+        .timer-container {
+            text-align: center;
+            margin-bottom: 8px;
+            padding: 6px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .timer-display {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 2px;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #48bb78, #ffd700, #e53e3e);
+            transition: width 0.5s ease;
+            border-radius: 2px;
+        }
+
+        .timer-warning {
+            color: #ff6b35 !important;
+            animation: pulse 1s infinite;
+        }
+
+        .timer-critical {
+            color: #e53e3e !important;
+            animation: pulse 0.5s infinite;
+        }
+
+        .game-status {
+            text-align: center;
+            font-size: 1em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #ffd700;
+            min-height: 20px;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 140px 1fr 140px 180px;
+            gap: 10px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .player-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 6px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .player-panel h3 {
+            margin-bottom: 6px;
+            text-align: center;
+            font-size: 0.8em;
+        }
+
+        .player-panel.active {
+            background: rgba(255, 215, 0, 0.1);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            border: 1px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .ability-section {
+            margin-bottom: 6px;
+        }
+
+        .ability-section h4 {
+            margin-bottom: 3px;
+            font-size: 0.65em;
+            color: #ffd700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ability-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .ability-btn {
+            background: linear-gradient(45deg, #4a5568, #2d3748);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 3px 5px;
+            border-radius: 3px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.6em;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ability-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(255, 215, 0, 0.3);
+            border-color: rgba(255, 215, 0, 0.6);
+        }
+
+        .ability-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .ability-btn.bomb { background: linear-gradient(45deg, #e53e3e, #c53030); }
+        .ability-btn.shield { background: linear-gradient(45deg, #3182ce, #2b6cb0); }
+        .ability-btn.swap { background: linear-gradient(45deg, #805ad5, #6b46c1); }
+        .ability-btn.teleport { background: linear-gradient(45deg, #38b2ac, #319795); }
+        .ability-btn.fortress { background: linear-gradient(45deg, #dd6b20, #c05621); }
+        .ability-btn.scout { background: linear-gradient(45deg, #48bb78, #38a169); }
+        .ability-btn.nuke { background: linear-gradient(45deg, #ff1744, #d50000); }
+
+        .ability-count {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ffd700;
+            color: #1a202c;
+            border-radius: 50%;
+            width: 12px;
+            height: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: bold;
+        }
+
+        .board-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 2px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 8px;
+            /* Made board much bigger - using calc to take most of available space */
+            width: min(70vh, calc(100vw - 500px));
+            height: min(70vh, calc(100vw - 500px));
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            /* Ensure minimum size for usability */
+            min-width: 350px;
+            min-height: 350px;
+        }
+
+        .cell {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            /* Increased font size for bigger board */
+            font-size: 1.8em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.1s ease;
+            position: relative;
+        }
+
+        .cell:hover:not(:disabled):not(.x):not(.o) {
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 1px 4px rgba(255, 215, 0, 0.4);
+        }
+
+        .cell:disabled {
+            cursor: not-allowed;
+        }
+
+        .cell.x {
+            background: linear-gradient(45deg, #e53e3e, #c53030);
+            color: white;
+        }
+
+        .cell.o {
+            background: linear-gradient(45deg, #3182ce, #2b6cb0);
+            color: white;
+        }
+
+        .cell.shielded::after {
+            content: '🛡️';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            /* Increased size for bigger board */
+            font-size: 0.4em;
+        }
+
+        .cell.fortress::after {
+            content: '🏰';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            /* Increased size for bigger board */
+            font-size: 0.4em;
+        }
+
+        .cell.bomb-target {
+            background: rgba(229, 62, 62, 0.7) !important;
+            animation: pulse 1s infinite;
+        }
+
+        .cell.teleport-target {
+            background: rgba(56, 178, 172, 0.7) !important;
+            animation: pulse 1s infinite;
+        }
+
+        .cell.bomb-area {
+            background: rgba(229, 62, 62, 0.4) !important;
+            animation: pulse 2s infinite;
+        }
+
+        .cell.nuke-area {
+            background: rgba(255, 23, 68, 0.6) !important;
+            animation: nukePulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+
+        @keyframes nukePulse {
+            0% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0.6; transform: scale(1); }
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3px;
+            margin-top: 6px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 3px;
+            border-radius: 3px;
+            text-align: center;
+            font-size: 0.65em;
+        }
+
+        .stat-value {
+            font-size: 1em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        /* Horizontal Ability Guide */
+        .ability-guide {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 8px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            overflow-y: auto;
+            max-height: 100%;
+        }
+
+        .guide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 4px;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .guide-header:hover {
+            background: rgba(255, 215, 0, 0.2);
+        }
+
+        .guide-title {
+            font-size: 0.75em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .guide-toggle {
+            font-size: 0.75em;
+            color: #ffd700;
+        }
+
+        .guide-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.6em;
+            line-height: 1.2;
+        }
+
+        .guide-content.collapsed {
+            display: none;
+        }
+
+        .ability-tier {
+            padding: 4px;
+            border-radius: 4px;
+            border-left: 3px solid;
+            margin-bottom: 6px;
+        }
+
+        .tier-common { border-color: #48bb78; background: rgba(72, 187, 120, 0.1); }
+        .tier-uncommon { border-color: #3182ce; background: rgba(49, 130, 206, 0.1); }
+        .tier-rare { border-color: #805ad5; background: rgba(128, 90, 213, 0.1); }
+        .tier-legendary { 
+            border-color: #ff1744; 
+            background: rgba(255, 23, 68, 0.1);
+            position: relative;
+        }
+
+        .tier-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .ability-item {
+            margin-bottom: 3px;
+            padding: 2px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 2px;
+        }
+
+        .ability-name {
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 1px;
+            font-size: 1em;
+        }
+
+        .ability-desc {
+            color: #bdc3c7;
+            margin-bottom: 1px;
+            font-size: 0.9em;
+        }
+
+        .ability-earn {
+            color: #48bb78;
+            font-style: italic;
+            font-size: 0.85em;
+            line-height: 1.1;
+        }
+
+        .ability-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: fadeInOut 4s ease-in-out;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            text-align: center;
+            min-width: 300px;
+        }
+
+        .nuke-notification {
+            background: linear-gradient(45deg, #ff1744, #d50000) !important;
+            animation: nukeNotification 5s ease-in-out;
+            font-size: 1.2em;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            15%, 85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        @keyframes nukeNotification {
+            0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            10%, 90% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .winner {
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(255, 215, 0, 0.5);
+            animation: glow 2s infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 2px 2px 4px rgba(255, 215, 0, 0.5); }
+            50% { text-shadow: 2px 2px 15px rgba(255, 215, 0, 0.8); }
+        }
+
+        @media (max-width: 1400px) {
+            .game-area {
+                grid-template-columns: 120px 1fr 120px;
+            }
+            
+            .ability-guide {
+                display: none;
+            }
+            
+            .board {
+                width: min(60vh, calc(100vw - 400px));
+                height: min(60vh, calc(100vw - 400px));
+                min-width: 320px;
+                min-height: 320px;
+            }
+            
+            .cell {
+                font-size: 1.6em;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .board {
+                width: min(55vh, calc(100vw - 350px));
+                height: min(55vh, calc(100vw - 350px));
+                min-width: 300px;
+                min-height: 300px;
+            }
+            
+            .cell {
+                font-size: 1.4em;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto auto;
+            }
+            
+            .player-panel {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .ability-section {
+                flex: 1;
+                min-width: 100px;
+            }
+            
+            .board {
+                width: min(50vh, calc(100vw - 60px));
+                height: min(50vh, calc(100vw - 60px));
+                min-width: 280px;
+                min-height: 280px;
+            }
+            
+            .cell {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Intro Screen -->
+        <div class="intro-screen" id="introScreen">
+            <h1 class="intro-title">⚔️ TIC TAC WARFARE ⚔️</h1>
+            <p class="intro-subtitle">Combat X&O on Enhanced Battlefield</p>
+            <p class="intro-description">
+                Master the art of warfare tic-tac-toe with devastating abilities and tactical positioning. 
+                Achieve victory through multiple battle strategies: complete lines, territory domination, or fortress supremacy. 
+                Abilities regenerate through combat prowess, creating intense 36-minute warfare sessions.
+            </p>
+
+            <div class="mode-selection">
+                <div class="mode-card" onclick="selectMode('ai')">
+                    <div class="mode-icon">
+                        <div class="icon-ai">[AI]</div>
+                    </div>
+                    <div class="mode-title">VS COMPUTER</div>
+                    <div class="mode-description">
+                        Test your tactical skills against our intelligent AI opponent. 
+                        Perfect for practicing strategies and honing your command abilities.
+                    </div>
+                    <div class="difficulty-selection" id="difficultySelection">
+                        <p style="color: #ffd700; margin: 15px 0 10px 0; font-weight: bold;">Select Difficulty:</p>
+                        <div class="difficulty-buttons">
+                            <button class="difficulty-btn" onclick="startGame('ai', 'easy')">Easy</button>
+                            <button class="difficulty-btn" onclick="startGame('ai', 'medium')">Medium</button>
+                            <button class="difficulty-btn" onclick="startGame('ai', 'hard')">Hard</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mode-card" onclick="startGame('human')">
+                    <div class="mode-icon">
+                        <div class="icon-multiplayer">
+                            <span>P1</span>
+                            <span style="color: #ff6b35;">vs</span>
+                            <span>P2</span>
+                        </div>
+                    </div>
+                    <div class="mode-title">TWO PLAYER</div>
+                    <div class="mode-description">
+                        Challenge a friend in head-to-head tactical warfare. 
+                        Take turns commanding your forces in epic strategic battles.
+                    </div>
+                </div>
+
+                <div class="mode-card" onclick="selectMode('network')">
+                    <div class="mode-icon">
+                        <div class="icon-network">NET</div>
+                    </div>
+                    <div class="mode-title">ONLINE PLAY</div>
+                    <div class="mode-description">
+                        Connect with friends over the internet for remote tactical battles.
+                        Share room codes to join each other's games.
+                    </div>
+                    <div class="network-section" id="networkSection">
+                        <div>
+                            <button class="network-btn" onclick="hostGame()">Create Room</button>
+                            <button class="network-btn" onclick="showJoinRoom()">Join Room</button>
+                        </div>
+                        <div id="joinRoomDiv" style="display: none;">
+                            <input type="text" class="network-input" id="roomCodeInput" placeholder="Room Code" maxlength="6">
+                            <button class="network-btn" onclick="joinGame()">Connect</button>
+                        </div>
+                        <div id="roomCodeDisplay" style="display: none;">
+                            Room Code: <strong id="displayedRoomCode"></strong>
+                            <br><small>Share this code with your friend</small>
+                        </div>
+                        <div id="connectionStatus" class="connection-status" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-features">
+                <div class="feature-item">
+                    <div class="feature-icon">💣</div>
+                    <div class="feature-title">Strategic Bombing</div>
+                    <div class="feature-desc">Bomb any square to clear 3x3 areas</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">☢️</div>
+                    <div class="feature-title">Ultimate Nuke</div>
+                    <div class="feature-desc">Legendary ability: clear 4x4 areas</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔄</div>
+                    <div class="feature-title">Enhanced X&O</div>
+                    <div class="feature-desc">Classic tic-tac-toe evolved with abilities</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🎯</div>
+                    <div class="feature-title">Multiple Victory</div>
+                    <div class="feature-desc">Win by lines, territory, or fortresses</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Game -->
+        <div class="main-game" id="mainGame">
+            <!-- Corner Buttons -->
+            <button class="corner-btn new-battle" onclick="resetGame()">🔄 New Battle</button>
+            <button class="corner-btn return-menu" onclick="returnToMenu()">🏠 Menu</button>
+
+            <h1>⚔️ TACTICAL TIC TAC TOE ⚔️</h1>
+            <p class="subtitle">Strategic X&O Combat on 6x6 Battlefield</p>
+            
+            <div class="timer-container">
+                <div class="timer-display" id="timerDisplay">60</div>
+                <div class="timer-bar">
+                    <div class="timer-fill" id="timerFill"></div>
+                </div>
+                <div style="font-size: 0.6em; opacity: 0.8;">Time remaining</div>
+            </div>
+            
+            <div class="game-status" id="gameStatus">Red Command's Turn</div>
+        
+            <div class="game-area">
+                <div class="player-panel active" id="playerX">
+                    <h3>🔥 RED COMMAND</h3>
+                    
+                    <div class="ability-section">
+                        <h4>⚡ Attack</h4>
+                        <div class="ability-buttons">
+                            <button class="ability-btn bomb" onclick="selectAbility('bomb')" id="bombBtnX">
+                                💣 Bomb
+                                <span class="ability-count" id="bombCountX">2</span>
+                            </button>
+                            <button class="ability-btn swap" onclick="selectAbility('swap')" id="swapBtnX">
+                                🔄 Convert
+                                <span class="ability-count" id="swapCountX">2</span>
+                            </button>
+                            <button class="ability-btn nuke" onclick="selectAbility('nuke')" id="nukeBtnX">
+                                ☢️ Nuke
+                                <span class="ability-count" id="nukeCountX">0</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ability-section">
+                        <h4>🛡️ Defense</h4>
+                        <div class="ability-buttons">
+                            <button class="ability-btn shield" onclick="selectAbility('shield')" id="shieldBtnX">
+                                🛡️ Shield
+                                <span class="ability-count" id="shieldCountX">2</span>
+                            </button>
+                            <button class="ability-btn fortress" onclick="selectAbility('fortress')" id="fortressBtnX">
+                                🏰 Fortress
+                                <span class="ability-count" id="fortressCountX">1</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ability-section">
+                        <h4>🎯 Tactical</h4>
+                        <div class="ability-buttons">
+                            <button class="ability-btn teleport" onclick="selectAbility('teleport')" id="teleportBtnX">
+                                ⚡ Teleport
+                                <span class="ability-count" id="teleportCountX">1</span>
+                            </button>
+                            <button class="ability-btn scout" onclick="selectAbility('scout')" id="scoutBtnX">
+                                👁️ Scout
+                                <span class="ability-count" id="scoutCountX">2</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="stats-panel">
+                        <div class="stat-item">Territory<br><span class="stat-value" id="territoryX">0</span></div>
+                        <div class="stat-item">Lines<br><span class="stat-value" id="linesX">0</span></div>
+                        <div class="stat-item">Fortresses<br><span class="stat-value" id="fortressesX">0</span></div>
+                        <div class="stat-item">Control<br><span class="stat-value" id="controlX">0%</span></div>
+                    </div>
+                </div>
+
+                <div class="board-container">
+                    <div class="board" id="board"></div>
+                </div>
+
+                <div class="player-panel" id="playerO">
+                    <h3>💎 BLUE COMMAND</h3>
+                    
+                    <div class="ability-section">
+                        <h4>⚡ Attack</h4>
+                        <div class="ability-buttons">
+                            <button class="ability-btn bomb" onclick="selectAbility('bomb')" id="bombBtnO">
+                                💣 Bomb
+                                <span class="ability-count" id="bombCountO">2</span>
+                            </button>
+                            <button class="ability-btn swap" onclick="selectAbility('swap')" id="swapBtnO">
+                                🔄 Convert
+                                <span class="ability-count" id="swapCountO">2</span>
+                            </button>
+                            <button class="ability-btn nuke" onclick="selectAbility('nuke')" id="nukeBtnO">
+                                ☢️ Nuke
+                                <span class="ability-count" id="nukeCountO">0</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ability-section">
+                        <h4>🛡️ Defense</h4>
+                        <div class="ability-buttons">
+                            <button class="ability-btn shield" onclick="selectAbility('shield')" id="shieldBtnO">
+                                🛡️ Shield
+                                <span class="ability-count" id="shieldCountO">2</span>
+                            </button>
+                            <button class="ability-btn fortress" onclick="selectAbility('fortress')" id="fortressBtnO">
+                                🏰 Fortress
+                                <span class="ability-count" id="fortressCountO">1</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ability-section">
+                        <h4>🎯 Tactical</h4>
+                        <div class="ability-buttons">
+                            <button class="ability-btn teleport" onclick="selectAbility('teleport')" id="teleportBtnO">
+                                ⚡ Teleport
+                                <span class="ability-count" id="teleportCountO">1</span>
+                            </button>
+                            <button class="ability-btn scout" onclick="selectAbility('scout')" id="scoutBtnO">
+                                👁️ Scout
+                                <span class="ability-count" id="scoutCountO">2</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="stats-panel">
+                        <div class="stat-item">Territory<br><span class="stat-value" id="territoryO">0</span></div>
+                        <div class="stat-item">Lines<br><span class="stat-value" id="linesO">0</span></div>
+                        <div class="stat-item">Fortresses<br><span class="stat-value" id="fortressesO">0</span></div>
+                        <div class="stat-item">Control<br><span class="stat-value" id="controlO">0%</span></div>
+                    </div>
+                </div>
+
+                <!-- Vertical Ability Guide -->
+                <div class="ability-guide">
+                    <div class="guide-header" onclick="toggleGuide()">
+                        <div class="guide-title">📖 Guide</div>
+                        <div class="guide-toggle" id="guideToggle">−</div>
+                    </div>
+                    
+                    <div class="guide-content" id="guideContent">
+                        <div class="ability-tier tier-common">
+                            <div class="tier-title">🟢 Common</div>
+                            <div class="ability-item">
+                                <div class="ability-name">👁️ Scout</div>
+                                <div class="ability-desc">Reveals 3x3 area</div>
+                                <div class="ability-earn">• Spot 2+ threats</div>
+                            </div>
+                            <div class="ability-item">
+                                <div class="ability-name">🛡️ Shield</div>
+                                <div class="ability-desc">Protects from bombs</div>
+                                <div class="ability-earn">• Shield saves piece</div>
+                            </div>
+                        </div>
+
+                        <div class="ability-tier tier-uncommon">
+                            <div class="tier-title">🔵 Uncommon</div>
+                            <div class="ability-item">
+                                <div class="ability-name">💣 Bomb</div>
+                                <div class="ability-desc">Destroys 3x3 area</div>
+                                <div class="ability-earn">• Destroy 3+ enemies</div>
+                            </div>
+                            <div class="ability-item">
+                                <div class="ability-name">🔄 Convert</div>
+                                <div class="ability-desc">Capture enemy pieces</div>
+                                <div class="ability-earn">• Convert protected</div>
+                            </div>
+                            <div class="ability-item">
+                                <div class="ability-name">⚡ Teleport</div>
+                                <div class="ability-desc">Move piece 2-3 squares</div>
+                                <div class="ability-earn">• Escape death</div>
+                            </div>
+                        </div>
+
+                        <div class="ability-tier tier-rare">
+                            <div class="tier-title">🟣 Rare</div>
+                            <div class="ability-item">
+                                <div class="ability-name">🏰 Fortress</div>
+                                <div class="ability-desc">Immovable, protected</div>
+                                <div class="ability-earn">• Territory control 8+</div>
+                            </div>
+                        </div>
+
+                        <div class="ability-tier tier-legendary">
+                            <div class="tier-title">🔴 Legendary</div>
+                            <div class="ability-item">
+                                <div class="ability-name">☢️ Nuke</div>
+                                <div class="ability-desc">Destroys 4x4 area</div>
+                                <div class="ability-earn">• Epic comeback (12+ deficit)</div>
+                            </div>
+                            
+                            <!-- Recent Rewards -->
+                            <div style="margin-top: 6px; padding-top: 4px; border-top: 1px solid rgba(255, 23, 68, 0.3);">
+                                <div style="font-weight: bold; margin-bottom: 2px; color: #ffd700; font-size: 0.9em;">Recent:</div>
+                                <div id="recentRewardsList" style="max-height: 80px; overflow-y: auto;">
+                                    <div style="color: #888; font-style: italic;">No rewards yet</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PeerJS for networking -->
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
+    <script>
+        let currentPlayer = 'X';
+        let board = Array(36).fill('');
+        let gameActive = true;
+        let selectedAbility = null;
+        let shieldedCells = new Set();
+        let fortressCells = new Set();
+        let scoutedCells = new Set();
+        let teleportFromCell = null;
+        let gameMode = 'human';
+        let aiDifficulty = 'medium';
+        let isAiTurn = false;
+        let abilityRewardedThisTurn = false;
+        let recentRewards = [];
+        let territoryControlTurns = { X: 0, O: 0 };
+        let guideCollapsed = false;
+        
+        // Timer variables
+        let turnTime = 60;
+        let timerInterval = null;
+        let currentTurnTime = turnTime;
+        
+        // Network variables
+        let peer = null;
+        let connection = null;
+        let isHost = false;
+        let myPlayer = 'X';
+        let roomCode = '';
+        
+        // BALANCED ability limits (rebalanced for better gameplay)
+        const MAX_ABILITIES = {
+            bomb: 6, shield: 6, swap: 5, teleport: 4, fortress: 3, scout: 6, nuke: 2
+        };
+        
+        const abilities = {
+            X: { bomb: 2, shield: 2, swap: 2, teleport: 1, fortress: 1, scout: 2, nuke: 0 },
+            O: { bomb: 2, shield: 2, swap: 2, teleport: 1, fortress: 1, scout: 2, nuke: 0 }
+        };
+
+        function generateRoomCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        function selectMode(mode) {
+            if (mode === 'ai') {
+                const difficultyDiv = document.getElementById('difficultySelection');
+                difficultyDiv.classList.add('show');
+                document.getElementById('networkSection').classList.remove('show');
+            } else if (mode === 'network') {
+                const networkDiv = document.getElementById('networkSection');
+                networkDiv.classList.add('show');
+                document.getElementById('difficultySelection').classList.remove('show');
+            } else {
+                startGame('human');
+            }
+        }
+
+        function toggleGuide() {
+            guideCollapsed = !guideCollapsed;
+            const content = document.getElementById('guideContent');
+            const toggle = document.getElementById('guideToggle');
+            
+            if (guideCollapsed) {
+                content.classList.add('collapsed');
+                toggle.textContent = '+';
+            } else {
+                content.classList.remove('collapsed');
+                toggle.textContent = '−';
+            }
+        }
+
+        function hostGame() {
+            roomCode = generateRoomCode();
+            gameMode = 'network';
+            isHost = true;
+            myPlayer = 'X';
+            
+            peer = new Peer(roomCode);
+            
+            peer.on('open', function(id) {
+                document.getElementById('displayedRoomCode').textContent = roomCode;
+                document.getElementById('roomCodeDisplay').style.display = 'block';
+                updateConnectionStatus('Waiting for opponent...', 'connecting');
+                
+                peer.on('connection', function(conn) {
+                    connection = conn;
+                    setupConnection();
+                    updateConnectionStatus('Connected! Starting game...', 'connected');
+                    setTimeout(() => startGame('network'), 1000);
+                });
+            });
+            
+            peer.on('error', function(err) {
+                console.error('Peer error:', err);
+                updateConnectionStatus('Connection failed', 'disconnected');
+            });
+        }
+
+        function showJoinRoom() {
+            document.getElementById('joinRoomDiv').style.display = 'block';
+        }
+
+        function joinGame() {
+            roomCode = document.getElementById('roomCodeInput').value.toUpperCase();
+            if (!roomCode || roomCode.length !== 6) {
+                alert('Please enter a valid 6-character room code');
+                return;
+            }
+            
+            gameMode = 'network';
+            isHost = false;
+            myPlayer = 'O';
+            
+            peer = new Peer();
+            
+            peer.on('open', function(id) {
+                updateConnectionStatus('Connecting...', 'connecting');
+                connection = peer.connect(roomCode);
+                setupConnection();
+                
+                connection.on('open', function() {
+                    updateConnectionStatus('Connected! Starting game...', 'connected');
+                    setTimeout(() => startGame('network'), 1000);
+                });
+            });
+            
+            peer.on('error', function(err) {
+                console.error('Peer error:', err);
+                updateConnectionStatus('Connection failed', 'disconnected');
+            });
+        }
+
+        function setupConnection() {
+            connection.on('data', function(data) {
+                handleNetworkMessage(data);
+            });
+            
+            connection.on('close', function() {
+                updateConnectionStatus('Opponent disconnected', 'disconnected');
+            });
+        }
+
+        function handleNetworkMessage(data) {
+            switch(data.type) {
+                case 'move':
+                    if (data.player !== myPlayer) {
+                        if (data.ability) {
+                            selectedAbility = data.ability;
+                            teleportFromCell = data.teleportFrom || null;
+                            handleAbility(data.index);
+                        } else {
+                            handleNormalMove(data.index);
+                        }
+                    }
+                    break;
+                case 'gameState':
+                    // Sync game state
+                    board = data.board;
+                    currentPlayer = data.currentPlayer;
+                    abilities.X = data.abilities.X;
+                    abilities.O = data.abilities.O;
+                    shieldedCells = new Set(data.shieldedCells);
+                    fortressCells = new Set(data.fortressCells);
+                    scoutedCells = new Set(data.scoutedCells);
+                    updateDisplay();
+                    updateUI();
+                    break;
+                case 'reset':
+                    resetGame();
+                    break;
+            }
+        }
+
+        function sendNetworkMessage(data) {
+            if (connection && connection.open) {
+                connection.send(data);
+            }
+        }
+
+        function updateConnectionStatus(message, status) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.textContent = message;
+            statusEl.className = `connection-status ${status}`;
+            statusEl.style.display = 'block';
+        }
+
+        function startTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            currentTurnTime = turnTime;
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                currentTurnTime--;
+                updateTimerDisplay();
+                
+                if (currentTurnTime <= 0) {
+                    clearInterval(timerInterval);
+                    timeOut();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const timerDisplay = document.getElementById('timerDisplay');
+            const timerFill = document.getElementById('timerFill');
+            
+            timerDisplay.textContent = currentTurnTime;
+            
+            const percentage = (currentTurnTime / turnTime) * 100;
+            timerFill.style.width = percentage + '%';
+            
+            // Change color based on remaining time
+            timerDisplay.className = '';
+            if (currentTurnTime <= 10) {
+                timerDisplay.classList.add('timer-critical');
+            } else if (currentTurnTime <= 20) {
+                timerDisplay.classList.add('timer-warning');
+            }
+        }
+
+        function timeOut() {
+            if (!gameActive) return;
+            
+            document.getElementById('gameStatus').textContent = `${currentPlayer === 'X' ? 'Red Command' : 'Blue Command'} ran out of time!`;
+            
+            // Auto-skip turn
+            setTimeout(() => {
+                if (gameActive) {
+                    switchPlayer();
+                }
+            }, 2000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function startGame(mode, difficulty = 'medium') {
+            gameMode = mode;
+            aiDifficulty = difficulty;
+            
+            // Hide intro screen and show main game
+            document.getElementById('introScreen').classList.add('hidden');
+            document.getElementById('mainGame').classList.add('active');
+            
+            // Update subtitle based on mode
+            const subtitle = document.querySelector('.subtitle');
+            if (mode === 'ai') {
+                subtitle.textContent = `VS Computer (${difficulty.toUpperCase()}) • Enhanced Tic Tac Toe`;
+            } else if (mode === 'network') {
+                subtitle.textContent = `Online Battle • ${isHost ? 'Host' : 'Guest'} Player • Enhanced Tic Tac Toe`;
+            } else {
+                subtitle.textContent = 'Two Player Mode • Enhanced Tic Tac Toe';
+            }
+            
+            // Initialize the game
+            initializeGame();
+        }
+
+        function returnToMenu() {
+            // Reset game state
+            resetGame();
+            stopTimer();
+            
+            // Close network connections
+            if (connection) {
+                connection.close();
+                connection = null;
+            }
+            if (peer) {
+                peer.destroy();
+                peer = null;
+            }
+            
+            // Reset network UI
+            document.getElementById('networkSection').classList.remove('show');
+            document.getElementById('difficultySelection').classList.remove('show');
+            document.getElementById('joinRoomDiv').style.display = 'none';
+            document.getElementById('roomCodeDisplay').style.display = 'none';
+            document.getElementById('connectionStatus').style.display = 'none';
+            document.getElementById('roomCodeInput').value = '';
+            
+            // Hide main game and show intro screen
+            document.getElementById('mainGame').classList.remove('active');
+            document.getElementById('introScreen').classList.remove('hidden');
+        }
+
+        function initializeGame() {
+            resetGame();
+            startTimer();
+        }
+
+        function initBoard() {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+            
+            for (let i = 0; i < 36; i++) {
+                const cell = document.createElement('button');
+                cell.className = 'cell';
+                cell.onclick = () => makeMove(i);
+                cell.id = `cell-${i}`;
+                boardElement.appendChild(cell);
+            }
+        }
+
+        function selectAbility(ability) {
+            if (!gameActive || isAiTurn) return;
+            if (gameMode === 'network' && currentPlayer !== myPlayer) return;
+            
+            if (abilities[currentPlayer][ability] > 0) {
+                selectedAbility = ability;
+                teleportFromCell = null;
+                clearTargets();
+                updateUI();
+                
+                switch(ability) {
+                    case 'bomb':
+                        document.getElementById('gameStatus').textContent = `${currentPlayer === 'X' ? 'Red Command' : 'Blue Command'}: Select target square for BOMB`;
+                        break;
+                    case 'nuke':
+                        document.getElementById('gameStatus').textContent = `${currentPlayer === 'X' ? 'Red Command' : 'Blue Command'}: Select center for NUCLEAR STRIKE`;
+                        break;
+                    case 'shield':
+                        document.getElementById('gameStatus').textContent = `${currentPlayer === 'X' ? 'Red Command' : 'Blue Command'}: Select your piece to SHIELD`;
+                        break;
+                    case 'swap':
+                        document.getElementById('gameStatus').textContent = `${currentPlayer === 'X' ? 'Red Command' : 'Blue Command'}: Select enemy piece to CONVERT`;
+                        break;
+                    case 'teleport':
+                        document.getElementById('gameStatus').textContent = `${currentPlayer === 'X' ? 'Red Command' : 'Blue Command'}: Select piece to TELEPORT`;
+                        break;
+                    case 'fortress':
+                        document.getElementById('gameStatus').textContent = `${currentPlayer === 'X' ? 'Red Command' : 'Blue Command'}: Select your piece for FORTRESS`;
+                        break;
+                    case 'scout':
+                        document.getElementById('gameStatus').textContent = `${currentPlayer === 'X' ? 'Red Command' : 'Blue Command'}: Select area to SCOUT (3x3)`;
+                        break;
+                }
+            }
+        }
+
+        function makeMove(index) {
+            if (!gameActive || isAiTurn) return;
+            if (gameMode === 'network' && currentPlayer !== myPlayer) return;
+
+            if (selectedAbility) {
+                handleAbility(index);
+                
+                // Send network message
+                if (gameMode === 'network') {
+                    sendNetworkMessage({
+                        type: 'move',
+                        player: myPlayer,
+                        index: index,
+                        ability: selectedAbility,
+                        teleportFrom: teleportFromCell
+                    });
+                }
+            } else {
+                handleNormalMove(index);
+                
+                // Send network message
+                if (gameMode === 'network') {
+                    sendNetworkMessage({
+                        type: 'move',
+                        player: myPlayer,
+                        index: index
+                    });
+                }
+            }
+        }
+
+        function handleNormalMove(index) {
+            if (board[index] === '') {
+                board[index] = currentPlayer;
+                updateDisplay();
+                checkWin();
+                if (gameActive) {
+                    switchPlayer();
+                }
+            }
+        }
+
+        function handleAbility(index) {
+            let abilityUsed = false;
+            
+            switch (selectedAbility) {
+                case 'bomb':
+                    useBomb(index);
+                    abilities[currentPlayer].bomb--;
+                    abilityUsed = true;
+                    break;
+
+                case 'nuke':
+                    useNuke(index);
+                    abilities[currentPlayer].nuke--;
+                    abilityUsed = true;
+                    break;
+                    
+                case 'shield':
+                    if (board[index] === currentPlayer) {
+                        shieldedCells.add(index);
+                        abilities[currentPlayer].shield--;
+                        abilityUsed = true;
+                    }
+                    break;
+                    
+                case 'swap':
+                    if (board[index] !== '' && board[index] !== currentPlayer && 
+                        !shieldedCells.has(index) && !fortressCells.has(index)) {
+                        board[index] = currentPlayer;
+                        abilities[currentPlayer].swap--;
+                        abilityUsed = true;
+                    }
+                    break;
+
+                case 'teleport':
+                    if (!teleportFromCell) {
+                        if (board[index] !== '' && !fortressCells.has(index)) {
+                            teleportFromCell = index;
+                            document.getElementById('gameStatus').textContent = 
+                                `${currentPlayer === 'X' ? 'Red Command' : 'Blue Command'}: Select destination for TELEPORT`;
+                            showTeleportTargets(index);
+                            return;
+                        }
+                    } else {
+                        if (board[index] === '' && isValidTeleportTarget(teleportFromCell, index)) {
+                            board[index] = board[teleportFromCell];
+                            board[teleportFromCell] = '';
+                            
+                            // Transfer special properties
+                            if (shieldedCells.has(teleportFromCell)) {
+                                shieldedCells.delete(teleportFromCell);
+                                shieldedCells.add(index);
+                            }
+                            
+                            abilities[currentPlayer].teleport--;
+                            teleportFromCell = null;
+                            abilityUsed = true;
+                        }
+                    }
+                    break;
+
+                case 'fortress':
+                    if (board[index] === currentPlayer && !fortressCells.has(index) && !shieldedCells.has(index)) {
+                        fortressCells.add(index);
+                        abilities[currentPlayer].fortress--;
+                        abilityUsed = true;
+                    }
+                    break;
+
+                case 'scout':
+                    useScout(index);
+                    abilities[currentPlayer].scout--;
+                    abilityUsed = true;
+                    break;
+            }
+            
+            if (abilityUsed) {
+                selectedAbility = null;
+                clearTargets();
+                updateDisplay();
+                checkWin();
+                if (gameActive) {
+                    switchPlayer();
+                }
+            }
+            
+            updateUI();
+        }
+
+        function useBomb(targetIndex) {
+            const row = Math.floor(targetIndex / 6);
+            const col = targetIndex % 6;
+            let enemyPiecesDestroyed = 0;
+            let ownPiecesDestroyed = 0;
+            
+            // Damage 3x3 area around target
+            for (let r = row - 1; r <= row + 1; r++) {
+                for (let c = col - 1; c <= col + 1; c++) {
+                    if (r >= 0 && r < 6 && c >= 0 && c < 6) {
+                        const cellIndex = r * 6 + c;
+                        
+                        // Only destroy pieces that aren't protected
+                        if (!shieldedCells.has(cellIndex) && !fortressCells.has(cellIndex)) {
+                            if (board[cellIndex] !== '') {
+                                if (board[cellIndex] === currentPlayer) {
+                                    ownPiecesDestroyed++;
+                                } else {
+                                    enemyPiecesDestroyed++;
+                                }
+                            }
+                            board[cellIndex] = '';
+                            scoutedCells.delete(cellIndex);
+                        }
+                    }
+                }
+            }
+            
+            // Award bomb success if destroyed more enemies than own pieces
+            if (enemyPiecesDestroyed >= 3) {
+                checkAbilityRewards('bomb_success');
+            }
+        }
+
+        function useNuke(targetIndex) {
+            // 4x4 nuke - much more powerful than bomb
+            const row = Math.floor(targetIndex / 6);
+            const col = targetIndex % 6;
+            let totalDestroyed = 0;
+            
+            // Calculate 4x4 area with target as center
+            for (let r = row - 1; r <= row + 2; r++) {
+                for (let c = col - 1; c <= col + 2; c++) {
+                    if (r >= 0 && r < 6 && c >= 0 && c < 6) {
+                        const cellIndex = r * 6 + c;
+                        // NUKE DESTROYS EVERYTHING - even protected pieces!
+                        if (board[cellIndex] !== '') {
+                            totalDestroyed++;
+                        }
+                        board[cellIndex] = '';
+                        shieldedCells.delete(cellIndex);
+                        scoutedCells.delete(cellIndex);
+                        // Fortresses are also destroyed by nuke!
+                        fortressCells.delete(cellIndex);
+                    }
+                }
+            }
+            
+            // Show nuke notification
+            showAbilityNotification(currentPlayer, 'nuke', `NUCLEAR DEVASTATION - ${totalDestroyed} squares obliterated!`, true);
+        }
+
+        function useScout(centerIndex) {
+            const row = Math.floor(centerIndex / 6);
+            const col = centerIndex % 6;
+            let threatsSpotted = 0;
+            
+            // Scout a 3x3 area
+            for (let r = row - 1; r <= row + 1; r++) {
+                for (let c = col - 1; c <= col + 1; c++) {
+                    if (r >= 0 && r < 6 && c >= 0 && c < 6) {
+                        const targetIndex = r * 6 + c;
+                        scoutedCells.add(targetIndex);
+                        
+                        // Count enemy pieces as threats spotted
+                        if (board[targetIndex] !== '' && board[targetIndex] !== currentPlayer) {
+                            threatsSpotted++;
+                        }
+                        
+                        // Visual feedback
+                        setTimeout(() => {
+                            const cell = document.getElementById(`cell-${targetIndex}`);
+                            if (cell) {
+                                cell.style.boxShadow = '0 0 10px rgba(72, 187, 120, 0.5)';
+                                setTimeout(() => {
+                                    if (cell) cell.style.boxShadow = '';
+                                }, 2000);
+                            }
+                        }, 100);
+                    }
+                }
+            }
+            
+            // Reward for spotting threats
+            if (threatsSpotted >= 2) {
+                checkAbilityRewards('scout_threats');
+            }
+        }
+
+        function isValidTeleportTarget(from, to) {
+            const fromRow = Math.floor(from / 6);
+            const fromCol = from % 6;
+            const toRow = Math.floor(to / 6);
+            const toCol = to % 6;
+            
+            // Can teleport 2-3 squares away
+            const distance = Math.max(Math.abs(fromRow - toRow), Math.abs(fromCol - toCol));
+            return distance >= 2 && distance <= 3;
+        }
+
+        function showBombTargets(centerIndex) {
+            clearTargets();
+            const row = Math.floor(centerIndex / 6);
+            const col = centerIndex % 6;
+            
+            // Show bomb target and affected area
+            document.getElementById(`cell-${centerIndex}`).classList.add('bomb-target');
+            
+            for (let r = row - 1; r <= row + 1; r++) {
+                for (let c = col - 1; c <= col + 1; c++) {
+                    if (r >= 0 && r < 6 && c >= 0 && c < 6) {
+                        const targetIndex = r * 6 + c;
+                        if (targetIndex !== centerIndex) {
+                            document.getElementById(`cell-${targetIndex}`).classList.add('bomb-area');
+                        }
+                    }
+                }
+            }
+        }
+
+        function showNukeTargets(centerIndex) {
+            clearTargets();
+            const row = Math.floor(centerIndex / 6);
+            const col = centerIndex % 6;
+            
+            // Show 4x4 nuke area
+            for (let r = row - 1; r <= row + 2; r++) {
+                for (let c = col - 1; c <= col + 2; c++) {
+                    if (r >= 0 && r < 6 && c >= 0 && c < 6) {
+                        const targetIndex = r * 6 + c;
+                        document.getElementById(`cell-${targetIndex}`).classList.add('nuke-area');
+                    }
+                }
+            }
+        }
+
+        function showTeleportTargets(fromIndex) {
+            clearTargets();
+            for (let i = 0; i < 36; i++) {
+                if (board[i] === '' && isValidTeleportTarget(fromIndex, i)) {
+                    document.getElementById(`cell-${i}`).classList.add('teleport-target');
+                }
+            }
+        }
+
+        function clearTargets() {
+            document.querySelectorAll('.bomb-target, .teleport-target, .bomb-area, .nuke-area').forEach(cell => {
+                cell.classList.remove('bomb-target', 'teleport-target', 'bomb-area', 'nuke-area');
+            });
+        }
+
+        // REBALANCED REWARD SYSTEM (improved from original analysis)
+        function checkAbilityRewards(context = 'normal') {
+            if (abilityRewardedThisTurn) return;
+            
+            const xCount = board.filter(cell => cell === 'X').length;
+            const oCount = board.filter(cell => cell === 'O').length;
+            const territoryDiff = Math.abs(xCount - oCount);
+            const myCount = currentPlayer === 'X' ? xCount : oCount;
+            const enemyCount = currentPlayer === 'X' ? oCount : xCount;
+            
+            // LEGENDARY TIER - Nuke rewards (very rare, requires significant achievement)
+            if (myCount > 0 && enemyCount - myCount >= 12) {
+                // Epic comeback opportunity (threshold: 12+ deficit)
+                awardAbility(currentPlayer, 'nuke', 'Epic Comeback Opportunity');
+                return;
+            }
+            
+            // Check for controlling all 4 corners
+            const corners = [0, 5, 30, 35];
+            const controlledCorners = corners.filter(i => board[i] === currentPlayer).length;
+            if (controlledCorners >= 4) {
+                awardAbility(currentPlayer, 'nuke', 'Corner Domination');
+                return;
+            }
+            
+            // Massive combo requirement
+            if (context === 'massive_combo' && myCount >= 8) {
+                awardAbility(currentPlayer, 'nuke', 'Devastating Combo');
+                return;
+            }
+            
+            // RARE TIER - Fortress rewards (balanced requirements)
+            if (territoryDiff >= 10 && myCount > enemyCount) {
+                awardAbility(currentPlayer, 'fortress', 'Territory Supremacy');
+                return;
+            }
+            
+            const myFortresses = Array.from(fortressCells).filter(i => board[i] === currentPlayer).length;
+            if (myFortresses >= 1 && Math.random() < 0.25) { // 25% chance for fortress survival
+                awardAbility(currentPlayer, 'fortress', 'Fortress Endurance');
+                return;
+            }
+            
+            // UNCOMMON TIER - Tactical abilities (more accessible)
+            
+            // Bomb rewards
+            if (context === 'bomb_success') {
+                awardAbility(currentPlayer, 'bomb', 'Devastating Strike');
+                return;
+            }
+            
+            // Convert rewards
+            if (context === 'convert_protected') {
+                awardAbility(currentPlayer, 'swap', 'Breakthrough Conversion');
+                return;
+            }
+            
+            // Teleport rewards
+            if (context === 'tactical_teleport') {
+                awardAbility(currentPlayer, 'teleport', 'Tactical Superiority');
+                return;
+            }
+            
+            // Line progress rewards (encouraging strategic play)
+            const lineProgress = getLongestLine(currentPlayer);
+            if (lineProgress >= 4) {
+                awardAbility(currentPlayer, 'teleport', 'Strategic Alignment');
+                return;
+            }
+            
+            // Territory control rewards (balanced for longer games)
+            if (myCount >= 12 && myCount > enemyCount + 3) {
+                awardAbility(currentPlayer, 'swap', 'Territory Advantage');
+                return;
+            }
+            
+            // COMMON TIER - Defensive abilities (more frequent)
+            
+            // Shield rewards
+            const myShields = Array.from(shieldedCells).filter(i => board[i] === currentPlayer).length;
+            if (myShields >= 3) {
+                awardAbility(currentPlayer, 'shield', 'Defensive Mastery');
+                return;
+            }
+            
+            if (context === 'shield_saved') {
+                awardAbility(currentPlayer, 'shield', 'Protection Rewarded');
+                return;
+            }
+            
+            // Scout rewards
+            if (context === 'scout_threats') {
+                awardAbility(currentPlayer, 'scout', 'Intelligence Gathering');
+                return;
+            }
+            
+            // Survival rewards (more accessible)
+            if (context === 'survived_abilities' && Math.random() < 0.5) {
+                awardAbility(currentPlayer, 'scout', 'Tactical Awareness');
+                return;
+            }
+            
+            // General progress rewards (new - encourages continued play)
+            if (myCount >= 8 && Math.random() < 0.3) {
+                const commonAbilities = ['scout', 'shield'];
+                const abilityType = commonAbilities[Math.floor(Math.random() * commonAbilities.length)];
+                awardAbility(currentPlayer, abilityType, 'Strategic Progress');
+                return;
+            }
+        }
+
+        function awardAbility(player, abilityType, reason) {
+            if (abilityRewardedThisTurn) return;
+            if (abilities[player][abilityType] >= MAX_ABILITIES[abilityType]) return;
+            
+            abilities[player][abilityType]++;
+            abilityRewardedThisTurn = true;
+            
+            // Add to recent rewards
+            const playerName = player === 'X' ? 'Red' : 'Blue';
+            const rewardText = `${playerName}: +1 ${abilityType.toUpperCase()} (${reason})`;
+            recentRewards.unshift(rewardText);
+            if (recentRewards.length > 5) recentRewards.pop();
+            
+            updateRecentRewards();
+            showAbilityNotification(player, abilityType, reason, abilityType === 'nuke');
+            updateUI();
+        }
+
+        function updateRecentRewards() {
+            const listEl = document.getElementById('recentRewardsList');
+            if (recentRewards.length === 0) {
+                listEl.innerHTML = '<div style="color: #888; font-style: italic; font-size: 0.9em;">No rewards yet</div>';
+            } else {
+                listEl.innerHTML = recentRewards.map(reward => 
+                    `<div style="margin-bottom: 2px; padding: 2px; background: rgba(0, 0, 0, 0.3); border-radius: 2px; font-size: 0.9em;">${reward}</div>`
+                ).join('');
+            }
+        }
+
+        function showAbilityNotification(player, abilityType, reason, isNuke = false) {
+            const notification = document.createElement('div');
+            notification.className = isNuke ? 'ability-notification nuke-notification' : 'ability-notification';
+            
+            const playerName = player === 'X' ? 'Red Command' : 'Blue Command';
+            const abilityIcon = {
+                bomb: '💣', shield: '🛡️', swap: '🔄', teleport: '⚡', 
+                fortress: '🏰', scout: '👁️', nuke: '☢️'
+            }[abilityType];
+            
+            notification.innerHTML = `
+                <div style="font-size: ${isNuke ? '1.3em' : '1.1em'}; margin-bottom: 8px;">
+                    <strong>${playerName}</strong>
+                </div>
+                <div style="font-size: ${isNuke ? '1.5em' : '1.2em'}; margin-bottom: 5px;">
+                    ${abilityIcon} +1 ${abilityType.toUpperCase()}
+                </div>
+                <div style="font-size: 0.9em; opacity: 0.9;">
+                    ${reason}
+                </div>
+                ${isNuke ? '<div style="font-size: 0.8em; margin-top: 5px; color: #ffeb3b;">⚠️ ULTIMATE POWER UNLOCKED ⚠️</div>' : ''}
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, isNuke ? 5000 : 4000);
+        }
+
+        function getLongestLine(player) {
+            let maxLength = 0;
+            
+            // Check rows
+            for (let row = 0; row < 6; row++) {
+                let currentLength = 0;
+                for (let col = 0; col < 6; col++) {
+                    if (board[row * 6 + col] === player) {
+                        currentLength++;
+                        maxLength = Math.max(maxLength, currentLength);
+                    } else {
+                        currentLength = 0;
+                    }
+                }
+            }
+            
+            // Check columns
+            for (let col = 0; col < 6; col++) {
+                let currentLength = 0;
+                for (let row = 0; row < 6; row++) {
+                    if (board[row * 6 + col] === player) {
+                        currentLength++;
+                        maxLength = Math.max(maxLength, currentLength);
+                    } else {
+                        currentLength = 0;
+                    }
+                }
+            }
+            
+            // Check diagonals
+            let currentLength = 0;
+            for (let i = 0; i < 6; i++) {
+                if (board[i * 6 + i] === player) {
+                    currentLength++;
+                    maxLength = Math.max(maxLength, currentLength);
+                } else {
+                    currentLength = 0;
+                }
+            }
+            
+            currentLength = 0;
+            for (let i = 0; i < 6; i++) {
+                if (board[i * 6 + (5 - i)] === player) {
+                    currentLength++;
+                    maxLength = Math.max(maxLength, currentLength);
+                } else {
+                    currentLength = 0;
+                }
+            }
+            
+            return maxLength;
+        }
+
+        function updateDisplay() {
+            for (let i = 0; i < 36; i++) {
+                const cell = document.getElementById(`cell-${i}`);
+                
+                // Clear all classes and content
+                cell.className = 'cell';
+                cell.textContent = '';
+                
+                // Set piece content and styling
+                if (board[i] === 'X') {
+                    cell.textContent = 'X';
+                    cell.classList.add('x');
+                } else if (board[i] === 'O') {
+                    cell.textContent = 'O';
+                    cell.classList.add('o');
+                }
+                
+                // Add special properties
+                if (shieldedCells.has(i)) {
+                    cell.classList.add('shielded');
+                }
+                
+                if (fortressCells.has(i)) {
+                    cell.classList.add('fortress');
+                }
+                
+                // Show ability previews on hover
+                if (selectedAbility === 'bomb') {
+                    cell.onmouseenter = () => showBombTargets(i);
+                    cell.onmouseleave = clearTargets;
+                } else if (selectedAbility === 'nuke') {
+                    cell.onmouseenter = () => showNukeTargets(i);
+                    cell.onmouseleave = clearTargets;
+                } else if (selectedAbility === 'teleport' && board[i] !== '' && !teleportFromCell) {
+                    cell.onmouseenter = () => showTeleportTargets(i);
+                    cell.onmouseleave = clearTargets;
+                } else {
+                    cell.onmouseenter = null;
+                    cell.onmouseleave = null;
+                }
+            }
+            
+            updateStats();
+        }
+
+        function updateStats() {
+            const xCount = board.filter(cell => cell === 'X').length;
+            const oCount = board.filter(cell => cell === 'O').length;
+            const totalPieces = xCount + oCount;
+            
+            const xFortresses = Array.from(fortressCells).filter(i => board[i] === 'X').length;
+            const oFortresses = Array.from(fortressCells).filter(i => board[i] === 'O').length;
+            
+            document.getElementById('territoryX').textContent = xCount;
+            document.getElementById('territoryO').textContent = oCount;
+            
+            document.getElementById('linesX').textContent = getLongestLine('X');
+            document.getElementById('linesO').textContent = getLongestLine('O');
+            
+            document.getElementById('fortressesX').textContent = xFortresses;
+            document.getElementById('fortressesO').textContent = oFortresses;
+            
+            document.getElementById('controlX').textContent = totalPieces > 0 ? Math.round((xCount / totalPieces) * 100) + '%' : '0%';
+            document.getElementById('controlO').textContent = totalPieces > 0 ? Math.round((oCount / totalPieces) * 100) + '%' : '0%';
+        }
+
+        function countLines(player) {
+            // Check for complete 6-in-a-row (victory condition)
+            
+            // Check rows
+            for (let row = 0; row < 6; row++) {
+                let count = 0;
+                for (let col = 0; col < 6; col++) {
+                    if (board[row * 6 + col] === player) {
+                        count++;
+                    }
+                }
+                if (count === 6) return 1;
+            }
+            
+            // Check columns
+            for (let col = 0; col < 6; col++) {
+                let count = 0;
+                for (let row = 0; row < 6; row++) {
+                    if (board[row * 6 + col] === player) {
+                        count++;
+                    }
+                }
+                if (count === 6) return 1;
+            }
+            
+            // Check main diagonal
+            let count = 0;
+            for (let i = 0; i < 6; i++) {
+                if (board[i * 6 + i] === player) {
+                    count++;
+                }
+            }
+            if (count === 6) return 1;
+            
+            // Check anti-diagonal
+            count = 0;
+            for (let i = 0; i < 6; i++) {
+                if (board[i * 6 + (5 - i)] === player) {
+                    count++;
+                }
+            }
+            if (count === 6) return 1;
+            
+            return 0;
+        }
+
+        function checkWin() {
+            // Check for 6 in a row (complete line victory)
+            if (countLines('X') > 0) {
+                endGame('X', '6 in a row achieved!');
+                return;
+            }
+            if (countLines('O') > 0) {
+                endGame('O', '6 in a row achieved!');
+                return;
+            }
+            
+            // Check for fortress victory (3+ fortresses)
+            const xFortresses = Array.from(fortressCells).filter(i => board[i] === 'X').length;
+            const oFortresses = Array.from(fortressCells).filter(i => board[i] === 'O').length;
+            
+            if (xFortresses >= 3) {
+                endGame('X', 'Fortress dominance achieved!');
+                return;
+            }
+            if (oFortresses >= 3) {
+                endGame('O', 'Fortress dominance achieved!');
+                return;
+            }
+            
+            // Check if board is full (territory control victory)
+            if (!board.includes('')) {
+                const xTerritory = board.filter(cell => cell === 'X').length;
+                const oTerritory = board.filter(cell => cell === 'O').length;
+                
+                if (xTerritory > oTerritory) {
+                    endGame('X', `Territory control victory! (${xTerritory} vs ${oTerritory})`);
+                } else if (oTerritory > xTerritory) {
+                    endGame('O', `Territory control victory! (${oTerritory} vs ${xTerritory})`);
+                } else {
+                    endGame(null, 'Strategic stalemate!');
+                }
+            }
+        }
+
+        function endGame(winner, reason) {
+            gameActive = false;
+            stopTimer();
+            const status = document.getElementById('gameStatus');
+            
+            if (winner) {
+                const winnerName = winner === 'X' ? 'RED COMMAND' : 'BLUE COMMAND';
+                status.innerHTML = `<span class="winner">🎉 ${winnerName} VICTORIOUS! 🎉</span><br>${reason}`;
+            } else {
+                status.innerHTML = `<span class="winner">⚔️ ${reason}</span>`;
+            }
+            
+            selectedAbility = null;
+            teleportFromCell = null;
+            clearTargets();
+            updateUI();
+        }
+
+        function switchPlayer() {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            selectedAbility = null;
+            teleportFromCell = null;
+            abilityRewardedThisTurn = false;
+            
+            // Check for ability rewards before ending turn
+            checkAbilityRewards();
+            
+            // Restart timer
+            if (gameActive) {
+                startTimer();
+            }
+            
+            // Update game status
+            const status = document.getElementById('gameStatus');
+            const playerName = currentPlayer === 'X' ? 'Red Command' : 'Blue Command';
+            
+            // Check if it's AI's turn
+            if (gameMode === 'ai' && currentPlayer === 'O') {
+                isAiTurn = true;
+                status.textContent = `${playerName}'s Turn (AI Thinking...)`;
+                updateUI();
+                
+                // AI makes move after delay
+                setTimeout(() => {
+                    makeAiMove();
+                }, 800 + Math.random() * 1200);
+            } else {
+                isAiTurn = false;
+                status.textContent = `${playerName}'s Turn`;
+            }
+            
+            // Send game state update for network play
+            if (gameMode === 'network') {
+                sendNetworkMessage({
+                    type: 'gameState',
+                    board: board,
+                    currentPlayer: currentPlayer,
+                    abilities: abilities,
+                    shieldedCells: Array.from(shieldedCells),
+                    fortressCells: Array.from(fortressCells),
+                    scoutedCells: Array.from(scoutedCells)
+                });
+            }
+            
+            updateUI();
+        }
+
+        function makeAiMove() {
+            if (!gameActive || currentPlayer !== 'O') return;
+            
+            const move = getAiMove();
+            
+            if (move.type === 'place') {
+                board[move.index] = 'O';
+                updateDisplay();
+                checkWin();
+                if (gameActive) {
+                    isAiTurn = false;
+                    switchPlayer();
+                }
+            } else if (move.type === 'ability') {
+                selectedAbility = move.ability;
+                setTimeout(() => {
+                    handleAbility(move.index);
+                    isAiTurn = false;
+                }, 500);
+            }
+        }
+
+        function getAiMove() {
+            const emptySpaces = [];
+            for (let i = 0; i < 36; i++) {
+                if (board[i] === '') emptySpaces.push(i);
+            }
+            
+            // Check if AI can win immediately
+            if (aiDifficulty !== 'easy') {
+                const winMove = findWinningMove('O');
+                if (winMove !== -1) {
+                    return { type: 'place', index: winMove };
+                }
+                
+                // Block player from winning
+                const blockMove = findWinningMove('X');
+                if (blockMove !== -1) {
+                    return { type: 'place', index: blockMove };
+                }
+            }
+            
+            // Use abilities strategically
+            if (aiDifficulty === 'hard' && Math.random() < 0.3) {
+                const abilityMove = getStrategicAbilityMove();
+                if (abilityMove) return abilityMove;
+            } else if (aiDifficulty === 'medium' && Math.random() < 0.2) {
+                const abilityMove = getStrategicAbilityMove();
+                if (abilityMove) return abilityMove;
+            }
+            
+            // Strategic positioning for hard difficulty
+            if (aiDifficulty === 'hard') {
+                const strategicMoves = emptySpaces.filter(i => {
+                    const row = Math.floor(i / 6);
+                    const col = i % 6;
+                    return (row >= 1 && row <= 4 && col >= 1 && col <= 4);
+                });
+                
+                if (strategicMoves.length > 0) {
+                    return { type: 'place', index: strategicMoves[Math.floor(Math.random() * strategicMoves.length)] };
+                }
+            }
+            
+            // Random move
+            return { type: 'place', index: emptySpaces[Math.floor(Math.random() * emptySpaces.length)] };
+        }
+
+        function findWinningMove(player) {
+            // Check each empty space to see if placing there creates a win
+            for (let i = 0; i < 36; i++) {
+                if (board[i] === '') {
+                    board[i] = player;
+                    if (countLines(player) > 0) {
+                        board[i] = '';
+                        return i;
+                    }
+                    board[i] = '';
+                }
+            }
+            return -1;
+        }
+
+        function getStrategicAbilityMove() {
+            const availableAbilities = [];
+            for (const [ability, count] of Object.entries(abilities.O)) {
+                if (count > 0) availableAbilities.push(ability);
+            }
+            
+            if (availableAbilities.length === 0) return null;
+            
+            const playerPieces = [];
+            const aiPieces = [];
+            
+            for (let i = 0; i < 36; i++) {
+                if (board[i] === 'X') playerPieces.push(i);
+                if (board[i] === 'O') aiPieces.push(i);
+            }
+            
+            // Use nuke if available and strategic
+            if (availableAbilities.includes('nuke') && playerPieces.length >= 6) {
+                // Find best nuke target
+                let bestTarget = playerPieces[0];
+                return { type: 'ability', ability: 'nuke', index: bestTarget };
+            }
+            
+            // Use bomb strategically
+            if (availableAbilities.includes('bomb') && playerPieces.length >= 3) {
+                for (const piece of playerPieces) {
+                    if (!shieldedCells.has(piece) && !fortressCells.has(piece)) {
+                        return { type: 'ability', ability: 'bomb', index: piece };
+                    }
+                }
+            }
+            
+            // Use convert on unprotected player pieces
+            if (availableAbilities.includes('swap') && playerPieces.length > 0) {
+                const convertTargets = playerPieces.filter(i => !shieldedCells.has(i) && !fortressCells.has(i));
+                if (convertTargets.length > 0) {
+                    return { type: 'ability', ability: 'swap', index: convertTargets[0] };
+                }
+            }
+            
+            // Use shield on valuable AI pieces
+            if (availableAbilities.includes('shield') && aiPieces.length > 0) {
+                const unshieldedPieces = aiPieces.filter(i => !shieldedCells.has(i));
+                if (unshieldedPieces.length > 0) {
+                    return { type: 'ability', ability: 'shield', index: unshieldedPieces[0] };
+                }
+            }
+            
+            return null;
+        }
+
+        function updateUI() {
+            // Update player panels
+            const isMyTurn = gameMode !== 'network' || currentPlayer === myPlayer;
+            document.getElementById('playerX').classList.toggle('active', currentPlayer === 'X' && !isAiTurn && isMyTurn);
+            document.getElementById('playerO').classList.toggle('active', currentPlayer === 'O' && !isAiTurn && isMyTurn);
+            
+            // Update ability counts and buttons
+            ['X', 'O'].forEach(player => {
+                ['bomb', 'shield', 'swap', 'teleport', 'fortress', 'scout', 'nuke'].forEach(ability => {
+                    const count = abilities[player][ability];
+                    const btn = document.getElementById(`${ability}Btn${player}`);
+                    const countEl = document.getElementById(`${ability}Count${player}`);
+                    
+                    if (countEl) countEl.textContent = count;
+                    
+                    // Disable buttons based on conditions
+                    const shouldDisable = count === 0 || 
+                                        currentPlayer !== player || 
+                                        !gameActive || 
+                                        isAiTurn || 
+                                        (gameMode === 'ai' && player === 'O') ||
+                                        (gameMode === 'network' && player !== myPlayer);
+                    
+                    if (btn) {
+                        btn.disabled = shouldDisable;
+                        
+                        // Highlight selected ability
+                        if (selectedAbility === ability && currentPlayer === player && !isAiTurn && isMyTurn) {
+                            btn.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.8)';
+                        } else {
+                            btn.style.boxShadow = '';
+                        }
+                    }
+                });
+            });
+        }
+
+        function resetGame() {
+            currentPlayer = 'X';
+            board = Array(36).fill('');
+            gameActive = true;
+            selectedAbility = null;
+            teleportFromCell = null;
+            isAiTurn = false;
+            abilityRewardedThisTurn = false;
+            shieldedCells.clear();
+            fortressCells.clear();
+            scoutedCells.clear();
+            recentRewards = [];
+            territoryControlTurns = { X: 0, O: 0 };
+            
+            abilities.X = { bomb: 2, shield: 2, swap: 2, teleport: 1, fortress: 1, scout: 2, nuke: 0 };
+            abilities.O = { bomb: 2, shield: 2, swap: 2, teleport: 1, fortress: 1, scout: 2, nuke: 0 };
+            
+            document.getElementById('gameStatus').textContent = "Red Command's Turn";
+            
+            initBoard();
+            updateDisplay();
+            updateUI();
+            updateRecentRewards();
+            clearTargets();
+            
+            // Send reset message for network play
+            if (gameMode === 'network') {
+                sendNetworkMessage({ type: 'reset' });
+            }
+            
+            // Restart timer
+            if (gameActive) {
+                startTimer();
+            }
+        }
+
+        // Initialize game
+        initBoard();
+        updateDisplay();
+        updateUI();
+        updateRecentRewards();
+    </script>
+</body>
+</html>
