@@ -4,7 +4,7 @@ A variant of tic‑tac‑toe featuring abilities and multiple victory paths. Thi
 
 ## Tabletop Prototype
 
-See [`design/README.md`](design/README.md) for a simplified, balanced ruleset and printable artwork.
+See [`design/README.md`](design/README.md) for a simplified, balanced ruleset and printable artwork, including board, token and ability card templates.
 
 ## Web Version
 

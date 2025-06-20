@@ -6,7 +6,7 @@ This folder contains a simplified ruleset and printable artwork for creating a t
 
 - **6x6 Game Board** – use `artwork/board.svg` for printing.
 - **X and O Tokens** – print `artwork/tokens.svg` on thick paper or cardboard and cut them out.
-- **Ability Cards** – optional small cards to track abilities available to each player.
+- **Ability Cards** – print `artwork/ability_cards.svg` and cut out one set for each player to track their abilities.
 - **Rule Sheet** – see below for the balanced ruleset.
 
 ## Balanced Ruleset
